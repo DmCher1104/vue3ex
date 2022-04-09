@@ -3,13 +3,11 @@
     <h3>Создание поста</h3>
     <my-input
         v-model="post.title"
-        @input="post.title = $event.target.value"
         type="text"
         placeholder="Название"
     />
     <my-input
         v-model="post.body"
-        @input="post.body = $event.target.value"
         type="text"
         placeholder="Описание"
     />
@@ -36,7 +34,7 @@ export default {
     }
   },
   methods: {
-    createPost(event) {
+    createPost() {
       this.post.id = Date.now();
       this.$emit('create', this.post);
       this.post = {

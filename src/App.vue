@@ -1,6 +1,10 @@
 <template>
   <div class="app">
     <h1>Страница с постами</h1>
+    <my-input
+        v-model="searchQuery"
+        placeholder="Поиск..."
+    />
     <!--    <my-btn @click="fetchPosts">получить posts</my-btn>-->
     <div class="app_btns">
       <my-btn
@@ -24,7 +28,7 @@
     </my-dialog>
 
     <post-list
-        v-bind:posts="posts"
+        v-bind:posts="sortedAndSearchedPost"
         @remove="removePost"
         v-if="!isPostsLoading"
     />
@@ -42,9 +46,11 @@ import MyDialog from "@/components/UI/MyDialog";
 import MyBtn from "@/components/UI/MyBtn";
 import axios from "axios";
 import MySelect from "@/components/UI/MySelect";
+import MyInput from "@/components/UI/MyInput";
 
 export default {
   components: {
+    MyInput,
     MySelect,
     MyBtn,
     MyDialog,
@@ -56,6 +62,7 @@ export default {
       dialogVisible: false,
       isPostsLoading: false,
       selectedSort: '',
+      searchQuery: '',
       sortOptions: [
         {value: 'title', name: 'По названию'},
         {value: 'body', name: 'По описанию'},
@@ -78,7 +85,7 @@ export default {
     async fetchPosts() {
       try {
         this.isPostsLoading = true;
-        const response = await axios.get('https://jsonplaceholder.typicode.com/posts?_limit=10');
+        const response = await axios.get('https://jsonplaceholder.typicode.com/posts?_limit=4');
         this.posts = response.data;
       } catch (e) {
         alert('Ошибка: ' + e);
@@ -90,13 +97,22 @@ export default {
   mounted() {
     this.fetchPosts();
   },
-  watch: {
-    selectedSort(newValue) {
-      this.posts.sort((post1, post2) => {
-        return post1[this.selectedSort].localeCompare(post2[this.selectedSort]);
-      });
+  computed: {
+    sortedPosts() {
+      return [...this.posts].sort((post1, post2) => post1[this.selectedSort]?.localeCompare(post2[this.selectedSort]));
+    },
+    sortedAndSearchedPost() {
+       return this.sortedPosts.filter(post => post.title.toLowerCase().includes(this.searchQuery.toLowerCase()));
     }
   }
+  ,
+  /*watch: {
+    selectedSort(newValue) {
+      this.posts.sort((post1, post2) => {
+        return post1[this.selectedSort]?.localeCompare(post2[this.selectedSort]);
+      });
+    }
+  }*/
 }
 </script>
 
