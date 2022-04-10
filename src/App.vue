@@ -37,6 +37,11 @@
       Идет загрузка...
     </div>
   </div>
+  <my-pagination
+      :totalPages="totalPages"
+      :currentPage="page"
+      @changePage="changePage"
+  />
 </template>
 
 <script>
@@ -47,9 +52,11 @@ import MyBtn from "@/components/UI/MyBtn";
 import axios from "axios";
 import MySelect from "@/components/UI/MySelect";
 import MyInput from "@/components/UI/MyInput";
+import MyPagination from "@/components/UI/MyPagination";
 
 export default {
   components: {
+    MyPagination,
     MyInput,
     MySelect,
     MyBtn,
@@ -62,11 +69,15 @@ export default {
       dialogVisible: false,
       isPostsLoading: false,
       selectedSort: '',
-      searchQuery: '',
       sortOptions: [
         {value: 'title', name: 'По названию'},
         {value: 'body', name: 'По описанию'},
+        {value: 'id', name: 'По номеру'},
       ],
+      searchQuery: '',
+      page: 1,
+      limit: 10,
+      totalPages: 0,
     }
   },
   methods: {
@@ -85,13 +96,23 @@ export default {
     async fetchPosts() {
       try {
         this.isPostsLoading = true;
-        const response = await axios.get('https://jsonplaceholder.typicode.com/posts?_limit=4');
+        const response = await axios.get('https://jsonplaceholder.typicode.com/posts', {
+          params: {
+            _page: this.page,
+            _limit: this.limit,
+          }
+        });
+        this.totalPages = Math.ceil(response.headers['x-total-count'] / this.limit);
         this.posts = response.data;
       } catch (e) {
         alert('Ошибка: ' + e);
       } finally {
         this.isPostsLoading = false;
       }
+    },
+    changePage(pageNumber) {
+      this.page = pageNumber;
+      this.fetchPosts();
     }
   },
   mounted() {
@@ -99,13 +120,14 @@ export default {
   },
   computed: {
     sortedPosts() {
-      return [...this.posts].sort((post1, post2) => post1[this.selectedSort]?.localeCompare(post2[this.selectedSort]));
+      return [...this.posts].sort((post1, post2) => {
+         return String(post1[this.selectedSort])?.localeCompare(String(post2[this.selectedSort]), {}, {numeric: "true"});
+      });
     },
     sortedAndSearchedPost() {
-       return this.sortedPosts.filter(post => post.title.toLowerCase().includes(this.searchQuery.toLowerCase()));
+      return this.sortedPosts.filter(post => post.title.toLowerCase().includes(this.searchQuery.toLowerCase()));
     }
-  }
-  ,
+  },
   /*watch: {
     selectedSort(newValue) {
       this.posts.sort((post1, post2) => {
