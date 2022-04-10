@@ -139,12 +139,6 @@ export default {
 </script>
 
 <style scoped>
-
-
-.app {
-  padding: 0 20px;
-}
-
 .app_btns {
   display: flex;
   justify-content: space-between;

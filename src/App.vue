@@ -19,4 +19,8 @@ export default {
   padding: 0;
   box-sizing: border-box;
 }
+
+.app {
+  padding: 0 20px;
+}
 </style>
