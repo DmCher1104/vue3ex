@@ -32,16 +32,17 @@
         @remove="removePost"
         v-if="!isPostsLoading"
     />
-    <div
-        v-else>
+    <div v-else>
       Идет загрузка...
     </div>
+    <div v-intersection="loadMorePosts" class="observer"></div>
   </div>
-  <my-pagination
-      :totalPages="totalPages"
-      :currentPage="page"
-      @changePage="changePage"
-  />
+
+  <!--  <my-pagination-->
+  <!--      :totalPages="totalPages"-->
+  <!--      :currentPage="page"-->
+  <!--      @changePage="changePage"-->
+  <!--  />-->
 </template>
 
 <script>
@@ -110,10 +111,26 @@ export default {
         this.isPostsLoading = false;
       }
     },
-    changePage(pageNumber) {
-      this.page = pageNumber;
-      this.fetchPosts();
-    }
+    async loadMorePosts() {
+      try {
+        this.page += 1;
+        const response = await axios.get('https://jsonplaceholder.typicode.com/posts', {
+          params: {
+            _page: this.page,
+            _limit: this.limit,
+          }
+        });
+        this.totalPages = Math.ceil(response.headers['x-total-count'] / this.limit);
+        this.posts = [...this.posts, ...response.data];
+      } catch (e) {
+        alert('Ошибка: ' + e);
+      }
+    },
+
+    // changePage(pageNumber) {
+    //   this.page = pageNumber;
+    //   this.fetchPosts();
+    // }
   },
   mounted() {
     this.fetchPosts();
@@ -128,13 +145,13 @@ export default {
       return this.sortedPosts.filter(post => post.title.toLowerCase().includes(this.searchQuery.toLowerCase()));
     }
   },
-  /*watch: {
-    selectedSort(newValue) {
+  watch: {
+   /* selectedSort(newValue) {
       this.posts.sort((post1, post2) => {
         return post1[this.selectedSort]?.localeCompare(post2[this.selectedSort]);
       });
-    }
-  }*/
+    }*/
+  }
 }
 </script>
 
@@ -143,5 +160,11 @@ export default {
   display: flex;
   justify-content: space-between;
   margin: 15px 0;
+}
+
+/*для наглядности*/
+.observer {
+  height: 30px;
+  background: red;
 }
 </style>
